@@ -192,7 +192,7 @@ export default {
         }
       }
       if (appSettings.getBoolean("altSpeedSettings", false)) {
-        return (1 / (maxSpeed * 3600000 * 60)).toFixed(1) + "min/km";
+        return (60 / (maxSpeed * 3600000)).toFixed(1) + "min/km";
       } else {
         return (maxSpeed * 3600000).toFixed(1) + "km/h";
       }
@@ -230,7 +230,7 @@ export default {
         }
       }
       if (appSettings.getBoolean("altSpeedSettings", false)) {
-        return (1 / (minSpeed * 3600000 * 60)).toFixed(1) + "min/km";
+        return (60 / (minSpeed * 3600000)).toFixed(1) + "min/km";
       } else {
         return (minSpeed * 3600000).toFixed(1) + "km/h";
       }

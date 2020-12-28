@@ -24,7 +24,7 @@
 
       <Label text="Run!" class="action-label"></Label>
     </ActionBar>
-    <GridLayout rows="*, 80">
+    <GridLayout rows="*, 160">
       <Mapbox
         :accessToken="accessToken"
         mapStyle="streets"
@@ -41,14 +41,18 @@
         row="0"
       >
       </Mapbox>
-      <StackLayout orientation="horizontal" row="1">
+      <GridLayout columns="*,*" rows="80,80" row="1">
         <Button
           v-show="status == 0"
           text.decode="&#xf04b;"
           class="big-play-button fas"
           @tap="start"
+          row="0"
+          col="0"
+          colSpan="2"
+          rowSpan="2"
         ></Button>
-        <Label v-show="status != 0" class="chrono-display">{{
+        <Label v-show="status != 0" class="chrono-display" row="0" col="0">{{
           this.chronoFormat
         }}</Label>
         <Button
@@ -56,23 +60,29 @@
           class="pause-button fas"
           @tap="pause"
           v-show="status == 1"
+          row="1"
+          col="0"
         ></Button>
         <Button
           text.decode="&#xf04b;"
           class="small-play-button fas"
           @tap="start"
           v-show="status == 2"
+          row="1"
+          col="0"
         ></Button>
         <Button
           text.decode="&#xf04d;"
           class="stop-button fas"
           @tap="stop"
           v-show="status != 0"
+          row="1"
+          col="1"
         ></Button>
-        <Label v-show="status != 0" class="distance-display">{{
+        <Label v-show="status != 0" class="distance-display" row="0" col="1">{{
           this.distance
         }}</Label>
-      </StackLayout>
+      </GridLayout>
     </GridLayout>
   </Page>
 </template>
@@ -110,7 +120,9 @@ export default {
         return (
           chronoDate.getUTCHours() +
           ":" +
-          chronoDate.getUTCMinutes() +
+          (chronoDate.getUTCMinutes() < 10
+            ? "0" + chronoDate.getUTCMinutes()
+            : chronoDate.getUTCMinutes()) +
           ":" +
           chronoDate.getUTCSeconds()
         );
@@ -119,7 +131,9 @@ export default {
           return (
             chronoDate.getUTCMinutes() +
             ":" +
-            chronoDate.getUTCSeconds() +
+            (chronoDate.getUTCSeconds() < 10
+              ? "0" + chronoDate.getUTCSeconds()
+              : chronoDate.getUTCSeconds()) +
             "." +
             chronoDate.getUTCMilliseconds() / 100
           );
@@ -313,35 +327,38 @@ export default {
 .small-play-button {
   background-color: #1da1f2;
   color: white;
-  width: 25%;
   font-size: 30px;
 }
 
 .pause-button {
   color: white;
   background-color: #657786;
-  width: 25%;
 }
 
 .stop-button {
   color: white;
   background-color: #14171a;
-  width: 25%;
-}
-
-.chrono-display {
-  width: 25%;
-  font-size: 30;
-  color: #14171a;
-  text-align: center;
-  padding-top: 20;
 }
 
 .distance-display {
-  width: 25%;
+  font-size: 30;
+  color: #1da1f2;
+  text-align: center;
+  border-width: 7px;
+  border-radius: 20px;
+  border-color: #14171a;
+  margin: 10;
+  padding-top: 5;
+}
+
+.chrono-display {
   font-size: 30;
   color: #14171a;
   text-align: center;
-  padding-top: 20;
+  border-width: 7px;
+  border-radius: 20px;
+  border-color: #1da1f2;
+  margin: 10;
+  padding-top: 5;
 }
 </style>
