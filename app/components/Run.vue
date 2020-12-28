@@ -100,6 +100,7 @@ export default {
       locationWatcher: undefined,
       locations: [],
       map: undefined,
+      lastSaved: { latitude: 0, longitude: 0 },
     };
   },
   computed: {
@@ -145,7 +146,7 @@ export default {
         );
       }
       if (distance < 1) {
-        return (distance * 100).toFixed(1) + "m";
+        return (distance * 1000).toFixed(1) + "m";
       } else {
         return distance.toFixed(2) + "km";
       }
@@ -312,7 +313,7 @@ export default {
 .small-play-button {
   background-color: #1da1f2;
   color: white;
-  width: 100%;
+  width: 25%;
   font-size: 30px;
 }
 

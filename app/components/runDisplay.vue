@@ -160,6 +160,9 @@ export default {
       }
     },
     highestSpeed() {
+      if (this.distance < 1) {
+        return this.averageSpeed;
+      }
       let distance = 0;
       let time = 0;
       let maxSpeed = 0;
@@ -195,6 +198,9 @@ export default {
       }
     },
     lowestSpeed() {
+      if (this.distance < 1) {
+        return this.averageSpeed;
+      }
       let distance = 0;
       let time = 0;
       let minSpeed = Number.MAX_SAFE_INTEGER;
