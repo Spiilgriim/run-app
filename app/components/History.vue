@@ -137,9 +137,22 @@ export default {
         '{"type": "FeatureCollection","features":[{"type":"Feature","properties":{"stroke": "#3357c0","stroke-width": 3,"stroke-opacity":1},"geometry":{"type":"LineString","coordinates":[';
       const horribleTextPt2 = "]}}]}";
       let url = horribleTextPt1;
-      for (let i = 0; i < locations.length; i++) {
-        url += "[" + locations[i].longitude + "," + locations[i].latitude + "]";
-        if (i != locations.length - 1) {
+      let multiplier = 1;
+      if (locations.length > 220) {
+        multiplier = 220 / locations.length;
+      }
+      let index = 0;
+      let i = 0;
+      while (Math.floor(index) < locations.length) {
+        i = Math.floor(index);
+        url +=
+          "[" +
+          locations[i].longitude.toFixed(5) +
+          "," +
+          locations[i].latitude.toFixed(5) +
+          "]";
+        index += multiplier;
+        if (Math.floor(index) < locations.length) {
           url += ",";
         }
       }
