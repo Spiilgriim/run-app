@@ -295,18 +295,22 @@ export default {
           const folder = fs.Folder.fromPath(
             fs.path.join(sdDownloadPath, "Run! Exports")
           );
+          const regex = /\\*\/*:*\**\?*<*>*\|*\.*/g;
+          let safeName = this.name.replace(regex, "");
           const file = folder.getFile(
             appSettings.getBoolean("useKMLFormat", false)
-              ? this.name + ".kml"
-              : this.name + ".geojson"
+              ? safeName + ".kml"
+              : safeName + ".geojson"
           );
-          file.writeText(StringToExport).then((saved) => {
-            SocialShare.shareText(StringToExport);
-          });
+          file.writeText(StringToExport);
         })
         .catch((err) => {
-          console.error(err);
+          alert(
+            "File could not be saved: File name might be forbidden by your phone\n" +
+              err
+          );
         });
+      SocialShare.shareText(StringToExport);
     },
     generateGeoJSON() {
       const header =
