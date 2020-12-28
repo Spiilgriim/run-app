@@ -120,6 +120,9 @@ import saveModal from "./saveModal";
 const appSettings = require("tns-core-modules/application-settings");
 import { getBoolean } from "@nativescript/core/application-settings";
 var SocialShare = require("nativescript-social-share");
+const fs = require("tns-core-modules/file-system");
+const permissions = require("nativescript-permissions");
+import { ShareFile } from "nativescript-share-file";
 
 export default {
   name: "RunDisplay",
@@ -277,7 +280,27 @@ export default {
       } else {
         StringToExport = this.generateGeoJSON();
       }
-      SocialShare.shareText(StringToExport);
+      permissions
+        .requestPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        .then(() => {
+          const sdDownloadPath = android.os.Environment.getExternalStoragePublicDirectory(
+            android.os.Environment.DIRECTORY_DOWNLOADS
+          ).toString();
+          const folder = fs.Folder.fromPath(
+            fs.path.join(sdDownloadPath, "Run! Exports")
+          );
+          const file = folder.getFile(
+            appSettings.getBoolean("useKMLFormat", false)
+              ? this.name + ".kml"
+              : this.name + ".geojson"
+          );
+          file.writeText(StringToExport).then((saved) => {
+            SocialShare.shareText(StringToExport);
+          });
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     },
     generateGeoJSON() {
       const header =
@@ -287,9 +310,9 @@ export default {
       for (let i = 0; i < this.locations.length; i++) {
         res +=
           "[" +
-          this.locations[i].longitude +
+          this.locations[i].longitude.toFixed(5) +
           "," +
-          this.locations[i].latitude +
+          this.locations[i].latitude.toFixed(5) +
           "]";
         if (i != this.locations.length - 1) {
           res += ",";
@@ -308,11 +331,11 @@ export default {
       let res = header;
       for (let i = 0; i < this.locations.length; i++) {
         res +=
-          this.locations[i].longitude +
+          this.locations[i].longitude.toFixed(5) +
           "," +
-          this.locations[i].latitude +
+          this.locations[i].latitude.toFixed(5) +
           "," +
-          this.locations[i].altitude +
+          this.locations[i].altitude.toFixed(5) +
           " ";
       }
       const tail =
