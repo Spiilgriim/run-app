@@ -49,7 +49,7 @@
           @tap="start"
         ></Button>
         <Label v-show="status != 0" class="chrono-display">{{
-          this.formatChrono
+          this.chronoFormat
         }}</Label>
         <Button
           text.decode="&#xf04c;"
@@ -103,7 +103,7 @@ export default {
     };
   },
   computed: {
-    formatChrono() {
+    chronoFormat() {
       let chronoDate = new Date(this.chrono);
       if (chronoDate > 3600000) {
         return (
@@ -189,7 +189,16 @@ export default {
       timerModule.clearInterval(this.timer);
       geolocation.clearWatch(this.locationWatcher);
       this.$showModal(saveModal, {
-        props: { defaultName: this.departTime.toDateString() },
+        props: {
+          defaultName:
+            this.departTime.toDateString() +
+            " - " +
+            this.departTime.getHours() +
+            ":" +
+            (this.departTime.getMinutes() < 10
+              ? "0" + this.departTime.getUTCMinutes()
+              : this.departTime.getUTCMinutes()),
+        },
         fullscreen: false,
         animated: true,
         stretched: false,
@@ -200,9 +209,10 @@ export default {
           oldList.push({
             name: data.name,
             departTime: this.departTime,
-            chrono: this.formatChrono,
+            chronoFormat: this.chronoFormat,
+            chrono: this.chrono,
             locations: this.locations,
-            distance: this.distance,
+            distanceFormat: this.distance,
           });
           appSettings.setString("runs", JSON.stringify(oldList));
         }

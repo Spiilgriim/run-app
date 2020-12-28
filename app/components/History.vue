@@ -36,7 +36,9 @@
               left="20"
               columns="*, 80"
               rows="100, 50, 30"
-              class="run-prev"
+              :class="
+                runIndex == runs.length - 1 ? 'run-prev-last' : 'run-prev'
+              "
               @tap="onItemTap(runIndex)"
             >
               <Image
@@ -50,7 +52,7 @@
               <Label class="run-label" :text="run.name" col="0" row="1" />
               <Label
                 class="run-infos"
-                :text="run.chrono + ' - ' + run.distance"
+                :text="run.chronoFormat + ' - ' + run.distanceFormat"
                 col="0"
                 row="2"
               />
@@ -171,6 +173,14 @@ export default {
   width: 90%;
   background-color: white;
   border-radius: 20px;
+}
+
+.run-prev-last {
+  height: 180;
+  width: 90%;
+  background-color: white;
+  border-radius: 20px;
+  margin-bottom: 20;
 }
 
 .run-label {

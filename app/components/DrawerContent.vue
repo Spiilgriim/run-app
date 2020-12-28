@@ -22,6 +22,14 @@
           <Label col="0" text.decode="&#xf1da;" class="fas menu-icon" />
           <Label col="1" text="History" class="menu-text" />
         </GridLayout>
+        <GridLayout
+          columns="auto, *"
+          :class="selectedPage === 'Settings' ? 'menu-selected' : 'menu-item'"
+          @tap="onNavigationItemTap(Settings)"
+        >
+          <Label col="0" text.decode="&#xf013;" class="fas menu-icon" />
+          <Label col="1" text="Settings" class="menu-text" />
+        </GridLayout>
       </StackLayout>
     </ScrollView>
   </GridLayout>
@@ -30,6 +38,7 @@
 <script>
 import Run from "./Run";
 import History from "./History";
+import Settings from "./Settings";
 import * as utils from "~/shared/utils";
 import SelectedPageService from "~/shared/selected-page-service";
 
@@ -43,12 +52,14 @@ export default {
     return {
       Run: Run,
       History: History,
+      Settings: Settings,
       selectedPage: "",
     };
   },
   components: {
     Run,
     History,
+    Settings,
   },
   methods: {
     onNavigationItemTap(component) {
