@@ -327,7 +327,6 @@ export default {
 .small-play-button {
   background-color: #1da1f2;
   color: white;
-  font-size: 30px;
 }
 
 .pause-button {
