@@ -228,16 +228,26 @@ export default {
         this.locationWatcher = geolocation.watchLocation(
           function(loc) {
             if (loc) {
-              that.locations.push(loc);
-              that.map.removePolylines();
-              that.map.addPolyline({
-                color: "#3357C0", // Set the color of the line (default black)
-                width: 3, // Set the width of the line (default 5)
-                opacity: 1, //Transparency / alpha, ranging 0-1. Default fully opaque (1).
-                points: that.locations.map((x) => {
-                  return { lat: x.latitude, lng: x.longitude };
-                }),
-              });
+              if (
+                that.calcCrow(
+                  loc.latitude,
+                  loc.longitude,
+                  that.lastSaved.latitude,
+                  that.lastSaved.longitude
+                ) > 0.01
+              ) {
+                that.lastSaved = loc;
+                that.locations.push(loc);
+                that.map.removePolylines();
+                that.map.addPolyline({
+                  color: "#3357C0", // Set the color of the line (default black)
+                  width: 3, // Set the width of the line (default 5)
+                  opacity: 1, //Transparency / alpha, ranging 0-1. Default fully opaque (1).
+                  points: that.locations.map((x) => {
+                    return { lat: x.latitude, lng: x.longitude };
+                  }),
+                });
+              }
             }
           },
           function(e) {
