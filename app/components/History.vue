@@ -138,8 +138,8 @@ export default {
       const horribleTextPt2 = "]}}]}";
       let url = horribleTextPt1;
       let multiplier = 1;
-      if (locations.length > 220) {
-        multiplier = 220 / locations.length;
+      if (locations.length > 240) {
+        multiplier = locations.length / 240;
       }
       let index = 0;
       let i = 0;
