@@ -346,7 +346,16 @@ export default {
     generateGeoJSON() {
       const header =
         '{"type": "FeatureCollection","features":[{"type":"Feature","properties":{"stroke": "#3357c0","stroke-width": 3,"stroke-opacity":1},"geometry":{"type":"LineString","coordinates":[';
-      const tail = "]}}]}";
+      const tail =
+        ']}},{"type":"Feature","properties":{"marker-color":"#657786","marker-size":"large","marker-symbol":"pitch"},"geometry":{"type":"Point","coordinates": [' +
+        this.locations[0].longitude.toFixed(5) +
+        "," +
+        this.locations[0].latitude.toFixed(5) +
+        ']}},{"type":"Feature","properties":{"marker-color":"#1da1f2","marker-size":"large","marker-symbol":"star"},"geometry":{"type":"Point","coordinates":[' +
+        this.locations[this.locations.length - 1].longitude.toFixed(5) +
+        "," +
+        this.locations[this.locations.length - 1].latitude.toFixed(5) +
+        "]}}]}";
       let res = header;
       for (let i = 0; i < this.locations.length; i++) {
         res +=
@@ -380,14 +389,30 @@ export default {
           " ";
       }
       const tail =
-        "</coordinates></LineString><styleUrl>#thickLine</styleUrl></Placemark></Document></kml>";
+        "</coordinates></LineString><styleUrl>#thickLine</styleUrl></Placemark><Placemark><name>Start</name><description>Start point of " +
+        this.name +
+        "</description><Point><coordinates>" +
+        this.locations[0].longitude.toFixed(5) +
+        "," +
+        this.locations[0].latitude.toFixed(5) +
+        "," +
+        this.locations[0].altitude.toFixed(5) +
+        "</coordinates></Point></Placemark><Placemark><name>Finish</name><description>Finish point of " +
+        this.name +
+        "</description><Point><coordinates>" +
+        this.locations[this.locations.length - 1].longitude.toFixed(5) +
+        "," +
+        this.locations[this.locations.length - 1].latitude.toFixed(5) +
+        "," +
+        this.locations[this.locations.length - 1].altitude.toFixed(5) +
+        "</coordinates></Point></Placemark></Document></kml>";
       return res + tail;
     },
     getPreview() {
       let locations = this.locations;
-      const horribleTextPt1 =
+      const head =
         '{"type": "FeatureCollection","features":[{"type":"Feature","properties":{"stroke": "#3357c0","stroke-width": 3,"stroke-opacity":1},"geometry":{"type":"LineString","coordinates":[';
-      const horribleTextPt2 =
+      const tail =
         ']}},{"type":"Feature","properties":{"marker-color":"#657786","marker-size":"large","marker-symbol":"pitch"},"geometry":{"type":"Point","coordinates": [' +
         locations[0].longitude.toFixed(5) +
         "," +
@@ -397,7 +422,7 @@ export default {
         "," +
         locations[locations.length - 1].latitude.toFixed(5) +
         "]}}]}";
-      let url = horribleTextPt1;
+      let url = head;
       let multiplier = 1;
       if (locations.length > 250) {
         multiplier = locations.length / 250;
@@ -417,7 +442,7 @@ export default {
           url += ",";
         }
       }
-      url += horribleTextPt2;
+      url += tail;
       url = escape(url);
       url =
         "https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/geojson(" +
@@ -426,6 +451,10 @@ export default {
         this.accessToken;
       return url;
     },
+  },
+  mounted() {
+    console.log(this.generateKML());
+    console.log(this.generateGeoJSON());
   },
 };
 </script>

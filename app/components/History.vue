@@ -133,9 +133,9 @@ export default {
       });
     },
     getPreview(locations) {
-      const horribleTextPt1 =
+      const head =
         '{"type": "FeatureCollection","features":[{"type":"Feature","properties":{"stroke": "#3357c0","stroke-width": 3,"stroke-opacity":1},"geometry":{"type":"LineString","coordinates":[';
-      const horribleTextPt2 =
+      const tail =
         ']}},{"type":"Feature","properties":{"marker-color":"#657786","marker-size":"large","marker-symbol":"pitch"},"geometry":{"type":"Point","coordinates": [' +
         locations[0].longitude.toFixed(5) +
         "," +
@@ -145,7 +145,7 @@ export default {
         "," +
         locations[locations.length - 1].latitude.toFixed(5) +
         "]}}]}";
-      let url = horribleTextPt1;
+      let url = head;
       let multiplier = 1;
       if (locations.length > 250) {
         multiplier = locations.length / 250;
@@ -165,7 +165,7 @@ export default {
           url += ",";
         }
       }
-      url += horribleTextPt2;
+      url += tail;
       url = escape(url);
       url =
         "https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/geojson(" +
