@@ -452,10 +452,6 @@ export default {
       return url;
     },
   },
-  mounted() {
-    console.log(this.generateKML());
-    console.log(this.generateGeoJSON());
-  },
 };
 </script>
 
