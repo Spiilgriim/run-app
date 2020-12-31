@@ -191,16 +191,33 @@ export default {
         }),
       });
     },
-    start() {
-      this.chronoStart = new Date();
-      if (this.status == 0) {
-        this.departTime = new Date();
+    async start() {
+      try {
+        let temp = await geolocation.getCurrentLocation({
+          desiredAccuracy: Accuracy.high,
+          maximumAge: 5000,
+          timeout: 20000,
+        });
+        this.locations.push(temp);
+        this.map.addMarkers([
+          {
+            lat: this.locations[0].latitude,
+            lng: this.locations[0].longitude,
+            icon: "res://run_pin",
+          },
+        ]);
+        this.chronoStart = new Date();
+        if (this.status == 0) {
+          this.departTime = new Date();
+        }
+        this.status = 1;
+        this.timer = timerModule.setInterval(() => {
+          this.updateCounter++;
+        }, 50);
+        this.startLocationWatch();
+      } catch (err) {
+        alert(err);
       }
-      this.status = 1;
-      this.timer = timerModule.setInterval(() => {
-        this.updateCounter++;
-      }, 50);
-      this.startLocationWatch();
     },
     pause() {
       this.pauseAdd += new Date() - new Date(this.chronoStart);
@@ -270,15 +287,6 @@ export default {
               ) {
                 that.lastSaved = loc;
                 that.locations.push(loc);
-                if (that.locations.length == 1) {
-                  that.map.addMarkers([
-                    {
-                      lat: that.locations[0].latitude,
-                      lng: that.locations[0].longitude,
-                      icon: "res://run_pin",
-                    },
-                  ]);
-                }
                 that.map.removePolylines();
                 that.map.addPolyline({
                   color: "#3357C0", // Set the color of the line (default black)
