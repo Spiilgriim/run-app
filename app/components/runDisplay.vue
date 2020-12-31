@@ -261,12 +261,14 @@ export default {
         {
           lat: this.locations[0].latitude,
           lng: this.locations[0].longitude,
+          icon: "res://run_pin",
         },
       ]);
       this.map.addMarkers([
         {
           lat: this.locations[this.locations.length - 1].latitude,
           lng: this.locations[this.locations.length - 1].longitude,
+          icon: "res://star_pin",
         },
       ]);
     },

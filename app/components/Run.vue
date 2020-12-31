@@ -111,11 +111,15 @@ export default {
       locations: [],
       map: undefined,
       lastSaved: { latitude: 0, longitude: 0 },
+      updateCounter: 0,
+      chronoStart: 0,
+      pauseAdd: 0,
     };
   },
   computed: {
     chronoFormat() {
-      let chronoDate = new Date(this.chrono);
+      let temp = this.updateCounter;
+      let chronoDate = new Date(new Date() - this.chronoStart + this.pauseAdd);
       if (chronoDate > 3600000) {
         return (
           chronoDate.getUTCHours() +
@@ -135,13 +139,15 @@ export default {
               ? "0" + chronoDate.getUTCSeconds()
               : chronoDate.getUTCSeconds()) +
             "." +
-            chronoDate.getUTCMilliseconds() / 100
+            Math.floor(chronoDate.getUTCMilliseconds() / 100)
           );
         } else {
           return (
             chronoDate.getUTCSeconds() +
             "." +
-            chronoDate.getUTCMilliseconds() / 100
+            (chronoDate.getUTCMilliseconds() > 99
+              ? Math.floor(chronoDate.getUTCMilliseconds() / 10)
+              : "0" + Math.floor(chronoDate.getUTCMilliseconds() / 10))
           );
         }
       }
@@ -174,9 +180,6 @@ export default {
     onDrawerButtonTap() {
       utils.showDrawer();
     },
-    startChrono() {
-      this.chrono += 100;
-    },
     onMapReady(args) {
       this.map = args.map;
       this.map.addPolyline({
@@ -189,14 +192,19 @@ export default {
       });
     },
     start() {
-      this.departTime = new Date();
+      this.chronoStart = new Date();
+      if (this.status == 0) {
+        this.departTime = new Date();
+      }
       this.status = 1;
       this.timer = timerModule.setInterval(() => {
-        this.chrono += 100;
-      }, 100);
+        this.updateCounter++;
+      }, 50);
       this.startLocationWatch();
     },
     pause() {
+      this.pauseAdd += new Date() - new Date(this.chronoStart);
+      this.chronoStart = new Date();
       timerModule.clearInterval(this.timer);
       this.status = 2;
     },
@@ -207,6 +215,7 @@ export default {
         {
           lat: this.locations[this.locations.length - 1].latitude,
           lng: this.locations[this.locations.length - 1].longitude,
+          icon: "res://star_pin",
         },
       ]);
       this.$showModal(saveModal, {
@@ -238,7 +247,8 @@ export default {
           appSettings.setString("runs", JSON.stringify(oldList));
         }
         this.status = 0;
-        this.chrono = 0;
+        this.pauseAdd = 0;
+        this.departTime = new Date();
         this.map.removePolylines();
         this.map.removeMarkers();
         this.locations = [];
@@ -265,6 +275,7 @@ export default {
                     {
                       lat: that.locations[0].latitude,
                       lng: that.locations[0].longitude,
+                      icon: "res://run_pin",
                     },
                   ]);
                 }
