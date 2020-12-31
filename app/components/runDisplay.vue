@@ -113,15 +113,15 @@
 import * as utils from "~/shared/utils";
 import SelectedPageService from "../shared/selected-page-service";
 import { mapboxToken } from "../secret.js";
-const timerModule = require("tns-core-modules/timer");
-import * as geolocation from "nativescript-geolocation";
-import { Accuracy } from "tns-core-modules/ui/enums";
 import saveModal from "./saveModal";
 const appSettings = require("tns-core-modules/application-settings");
 import { getBoolean } from "@nativescript/core/application-settings";
 var SocialShare = require("nativescript-social-share");
 const fs = require("tns-core-modules/file-system");
 const permissions = require("nativescript-permissions");
+import * as application from "tns-core-modules/application";
+import { run } from "tns-core-modules/application";
+import { ImageSource } from "image-source";
 import { ShareFile } from "nativescript-share-file";
 
 export default {
@@ -257,6 +257,18 @@ export default {
           return { lat: x.latitude, lng: x.longitude };
         }),
       });
+      this.map.addMarkers([
+        {
+          lat: this.locations[0].latitude,
+          lng: this.locations[0].longitude,
+        },
+      ]);
+      this.map.addMarkers([
+        {
+          lat: this.locations[this.locations.length - 1].latitude,
+          lng: this.locations[this.locations.length - 1].longitude,
+        },
+      ]);
     },
     calcCrow(lat1, lon1, lat2, lon2) {
       var R = 6371; // km
@@ -280,37 +292,56 @@ export default {
       return (Value * Math.PI) / 180;
     },
     shareRun() {
-      let StringToExport = "";
-      if (appSettings.getBoolean("useKMLFormat", false)) {
-        StringToExport = this.generateKML();
-      } else {
-        StringToExport = this.generateGeoJSON();
-      }
-      permissions
-        .requestPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        .then(() => {
-          const sdDownloadPath = android.os.Environment.getExternalStoragePublicDirectory(
-            android.os.Environment.DIRECTORY_DOWNLOADS
-          ).toString();
-          const folder = fs.Folder.fromPath(
-            fs.path.join(sdDownloadPath, "Run! Exports")
-          );
-          const regex = /\\*\/*:*\**\?*<*>*\|*\.*/g;
-          let safeName = this.name.replace(regex, "");
-          const file = folder.getFile(
-            appSettings.getBoolean("useKMLFormat", false)
-              ? safeName + ".kml"
-              : safeName + ".geojson"
-          );
-          file.writeText(StringToExport);
-        })
-        .catch((err) => {
-          alert(
-            "File could not be saved: File name might be forbidden by your phone\n" +
-              err
-          );
-        });
-      SocialShare.shareText(StringToExport);
+      action("How do you want to share you Run!", "cancel", [
+        "Location File",
+        "Preview Picture",
+      ]).then(async (result) => {
+        if (result == "Preview Picture") {
+          try {
+            const runImage = await ImageSource.fromUrl(this.getPreview());
+            SocialShare.shareImage(runImage);
+          } catch (err) {
+            alert(err);
+          }
+        } else {
+          if (result == "Location File") {
+            let StringToExport = "";
+            if (appSettings.getBoolean("useKMLFormat", false)) {
+              StringToExport = this.generateKML();
+            } else {
+              StringToExport = this.generateGeoJSON();
+            }
+            permissions
+              .requestPermission(
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+              )
+              .then(() => {
+                const sdDownloadPath = android.os.Environment.getExternalStoragePublicDirectory(
+                  android.os.Environment.DIRECTORY_DOWNLOADS
+                ).toString();
+                const folder = fs.Folder.fromPath(
+                  fs.path.join(sdDownloadPath, "Run! Exports")
+                );
+                const regex = /\\*\/*:*\**\?*<*>*\|*\.*/g;
+                let safeName = this.name.replace(regex, "");
+                const file = folder.getFile(
+                  appSettings.getBoolean("useKMLFormat", false)
+                    ? safeName + ".kml"
+                    : safeName + ".geojson"
+                );
+                file.writeText(StringToExport);
+                let shareFile = new ShareFile();
+
+                shareFile.open({
+                  path: file.path,
+                });
+              })
+              .catch((err) => {
+                alert(err);
+              });
+          }
+        }
+      });
     },
     generateGeoJSON() {
       const header =
@@ -351,6 +382,49 @@ export default {
       const tail =
         "</coordinates></LineString><styleUrl>#thickLine</styleUrl></Placemark></Document></kml>";
       return res + tail;
+    },
+    getPreview() {
+      let locations = this.locations;
+      const horribleTextPt1 =
+        '{"type": "FeatureCollection","features":[{"type":"Feature","properties":{"stroke": "#3357c0","stroke-width": 3,"stroke-opacity":1},"geometry":{"type":"LineString","coordinates":[';
+      const horribleTextPt2 =
+        ']}},{"type":"Feature","properties":{"marker-color":"#657786","marker-size":"large","marker-symbol":"pitch"},"geometry":{"type":"Point","coordinates": [' +
+        locations[0].longitude.toFixed(5) +
+        "," +
+        locations[0].latitude.toFixed(5) +
+        ']}},{"type":"Feature","properties":{"marker-color":"#1da1f2","marker-size":"large","marker-symbol":"star"},"geometry":{"type":"Point","coordinates":[' +
+        locations[locations.length - 1].longitude.toFixed(5) +
+        "," +
+        locations[locations.length - 1].latitude.toFixed(5) +
+        "]}}]}";
+      let url = horribleTextPt1;
+      let multiplier = 1;
+      if (locations.length > 250) {
+        multiplier = locations.length / 250;
+      }
+      let index = 0;
+      let i = 0;
+      while (Math.floor(index) < locations.length) {
+        i = Math.floor(index);
+        url +=
+          "[" +
+          locations[i].longitude.toFixed(5) +
+          "," +
+          locations[i].latitude.toFixed(5) +
+          "]";
+        index += multiplier;
+        if (Math.floor(index) < locations.length) {
+          url += ",";
+        }
+      }
+      url += horribleTextPt2;
+      url = escape(url);
+      url =
+        "https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/geojson(" +
+        url +
+        ")/auto/800x800?access_token=" +
+        this.accessToken;
+      return url;
     },
   },
 };

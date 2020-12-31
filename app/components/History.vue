@@ -135,11 +135,20 @@ export default {
     getPreview(locations) {
       const horribleTextPt1 =
         '{"type": "FeatureCollection","features":[{"type":"Feature","properties":{"stroke": "#3357c0","stroke-width": 3,"stroke-opacity":1},"geometry":{"type":"LineString","coordinates":[';
-      const horribleTextPt2 = "]}}]}";
+      const horribleTextPt2 =
+        ']}},{"type":"Feature","properties":{"marker-color":"#657786","marker-size":"large","marker-symbol":"pitch"},"geometry":{"type":"Point","coordinates": [' +
+        locations[0].longitude.toFixed(5) +
+        "," +
+        locations[0].latitude.toFixed(5) +
+        ']}},{"type":"Feature","properties":{"marker-color":"#1da1f2","marker-size":"large","marker-symbol":"star"},"geometry":{"type":"Point","coordinates":[' +
+        locations[locations.length - 1].longitude.toFixed(5) +
+        "," +
+        locations[locations.length - 1].latitude.toFixed(5) +
+        "]}}]}";
       let url = horribleTextPt1;
       let multiplier = 1;
-      if (locations.length > 240) {
-        multiplier = locations.length / 240;
+      if (locations.length > 250) {
+        multiplier = locations.length / 250;
       }
       let index = 0;
       let i = 0;

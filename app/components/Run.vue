@@ -203,6 +203,12 @@ export default {
     stop() {
       timerModule.clearInterval(this.timer);
       geolocation.clearWatch(this.locationWatcher);
+      this.map.addMarkers([
+        {
+          lat: this.locations[this.locations.length - 1].latitude,
+          lng: this.locations[this.locations.length - 1].longitude,
+        },
+      ]);
       this.$showModal(saveModal, {
         props: {
           defaultName:
@@ -234,6 +240,7 @@ export default {
         this.status = 0;
         this.chrono = 0;
         this.map.removePolylines();
+        this.map.removeMarkers();
         this.locations = [];
       });
     },
@@ -253,6 +260,14 @@ export default {
               ) {
                 that.lastSaved = loc;
                 that.locations.push(loc);
+                if (that.locations.length == 1) {
+                  that.map.addMarkers([
+                    {
+                      lat: that.locations[0].latitude,
+                      lng: that.locations[0].longitude,
+                    },
+                  ]);
+                }
                 that.map.removePolylines();
                 that.map.addPolyline({
                   color: "#3357C0", // Set the color of the line (default black)
