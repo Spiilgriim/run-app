@@ -227,6 +227,7 @@ export default {
     },
     stop() {
       timerModule.clearInterval(this.timer);
+      let temp = new Date() - this.chronoStart + this.pauseAdd;
       geolocation.clearWatch(this.locationWatcher);
       this.map.addMarkers([
         {
@@ -257,7 +258,7 @@ export default {
             name: data.name,
             departTime: this.departTime,
             chronoFormat: this.chronoFormat,
-            chrono: this.chrono,
+            chrono: temp,
             locations: this.locations,
             distanceFormat: this.distance,
           });
