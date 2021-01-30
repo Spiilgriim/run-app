@@ -4,6 +4,7 @@ import App from "./components/App";
 import Run from "./components/Run";
 import DrawerContent from "./components/DrawerContent";
 import RadSideDrawer from "nativescript-ui-sidedrawer/vue";
+const appSettings = require("tns-core-modules/application-settings");
 Vue.use(RadSideDrawer);
 Vue.registerElement(
   "Carousel",

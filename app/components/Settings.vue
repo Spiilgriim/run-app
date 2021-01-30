@@ -33,15 +33,26 @@ ht<template>
           class="settings-switch"
         />
       </GridLayout>
-      <GridLayout columns="*,100" class="settings-entry">
-        <Label col="0" class="settings-label">Export as KML</Label>
+      <Gridlayout columns="*,100" class="settings-entry">
+        <Label col="0" class="settings-label">export as kml</Label>
         <Switch
           v-model="useKMLFormat"
           col="1"
           @checkedChange="saveExportFormat"
           class="settings-switch"
         />
-      </GridLayout>
+      </Gridlayout>
+      <Gridlayout columns="*,100" class="settings-entry">
+        <Label col="0" class="settings-label">No map mode</Label>
+        <Switch
+          v-model="noMapMode"
+          col="1"
+          @checkedChange="toggleMap"
+          class="settings-switch"
+        />
+      </Gridlayout>
+      <Button @tap="exportHistory" class="export-button">Export History</Button>
+      <Button @tap="pickFile" class="export-button">Import History</Button>
     </StackLayout>
   </Page>
 </template>
@@ -54,6 +65,12 @@ import {
   getBoolean,
   setBoolean,
 } from "@nativescript/core/application-settings";
+const fs = require("tns-core-modules/file-system");
+const permissions = require("nativescript-permissions");
+import {
+  Mediafilepicker,
+  FilePickerOptions,
+} from "nativescript-mediafilepicker";
 
 export default {
   name: "Settings",
@@ -61,6 +78,7 @@ export default {
     return {
       altSpeedSettings: appSettings.getBoolean("altSpeedSettings", false),
       useKMLFormat: appSettings.getBoolean("useKMLFormat", false),
+      noMapMode: appSettings.getBoolean("noMapMode", false),
     };
   },
   methods: {
@@ -70,8 +88,75 @@ export default {
     saveExportFormat() {
       appSettings.setBoolean("useKMLFormat", this.useKMLFormat);
     },
+    toggleMap() {
+      appSettings.setBoolean("noMapMode", this.noMapMode);
+    },
     onDrawerButtonTap() {
       utils.showDrawer();
+    },
+    exportHistory() {
+      let StringToExport = appSettings.getString("runs", "[]");
+      permissions
+        .requestPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        .then(() => {
+          const sdDownloadPath = android.os.Environment.getExternalStoragePublicDirectory(
+            android.os.Environment.DIRECTORY_DOWNLOADS
+          ).toString();
+          const folder = fs.Folder.fromPath(fs.path.join(sdDownloadPath, ""));
+          const regex = /\\*\/*:*\**\?*<*>*\|*\.*/g;
+          let safeName = new Date().toDateString().replace(regex, "");
+          const file = folder.getFile(safeName + ".txt");
+          file.writeText(StringToExport).then(() => {
+            alert("Export successful");
+          });
+        })
+        .catch((err) => {
+          alert(err);
+        });
+    },
+    pickFile() {
+      let extensions = ["txt"];
+
+      let options = {
+        android: {
+          extensions: extensions,
+          maxNumberFiles: 1,
+        },
+        ios: {
+          extensions: extensions,
+          multipleSelection: false,
+        },
+      };
+
+      let mediafilepicker = new Mediafilepicker();
+      mediafilepicker.openFilePicker(options);
+
+      mediafilepicker.on("getFiles", function(res) {
+        let results = res.object.get("results");
+        let file = fs.File.fromPath(results[0].file);
+        file
+          .readText()
+          .then((res) => {
+            let oldHistory = JSON.parse(appSettings.getString("runs", "[]"));
+            let exportHistory = JSON.parse(res);
+            for (let i = 0; i < exportHistory.length; i++) {
+              oldHistory.push(exportHistory[i]);
+            }
+            appSettings.setString("runs", JSON.stringify(oldHistory));
+            alert("imported " + exportHistory.length + " run(s)");
+          })
+          .catch((err) => alert(err));
+      });
+
+      mediafilepicker.on("error", function(res) {
+        let msg = res.object.get("msg");
+        console.log(msg);
+      });
+
+      mediafilepicker.on("cancel", function(res) {
+        let msg = res.object.get("msg");
+        console.log(msg);
+      });
     },
   },
   mounted() {

@@ -24,7 +24,7 @@
 
       <Label text="Run!" class="action-label"></Label>
     </ActionBar>
-    <GridLayout rows="*, 160">
+    <GridLayout rows="*, 160" v-if="!noMapMode">
       <Mapbox
         :accessToken="accessToken"
         mapStyle="streets"
@@ -84,6 +84,57 @@
         }}</Label>
       </GridLayout>
     </GridLayout>
+    <GridLayout rows="*, 80, 80" columns="*,*" v-else>
+      <Button
+        v-show="status == 0"
+        text.decode="&#xf04b;"
+        class="big-play-button fas"
+        @tap="start"
+        row="1"
+        rowSpan="2"
+        col="0"
+        colSpan="2"
+      ></Button>
+      <Label
+        :class="!noMapMode ? 'chrono-display' : 'chrono-display-big'"
+        row="0"
+        col="0"
+        colSpan="2"
+        >{{ status == 0 ? "Run!" : chronoFormat }}</Label
+      >
+      <Button
+        text.decode="&#xf04c;"
+        class="pause-button fas"
+        @tap="pause"
+        v-show="status == 1"
+        row="2"
+        col="0"
+      ></Button>
+      <Button
+        text.decode="&#xf04b;"
+        class="small-play-button fas"
+        @tap="start"
+        v-show="status == 2"
+        row="2"
+        col="0"
+      ></Button>
+      <Button
+        text.decode="&#xf04d;"
+        class="stop-button fas"
+        @tap="stop"
+        v-show="status != 0"
+        row="2"
+        col="1"
+      ></Button>
+      <Label
+        v-show="status != 0"
+        class="distance-display"
+        row="1"
+        col="0"
+        colSpan="2"
+        >{{ this.distance }}</Label
+      >
+    </GridLayout>
   </Page>
 </template>
 
@@ -114,6 +165,7 @@ export default {
       updateCounter: 0,
       chronoStart: 0,
       pauseAdd: 0,
+      noMapMode: appSettings.getBoolean("noMapMode", false),
     };
   },
   computed: {
@@ -199,13 +251,15 @@ export default {
           timeout: 20000,
         });
         this.locations.push(temp);
-        this.map.addMarkers([
-          {
-            lat: this.locations[0].latitude,
-            lng: this.locations[0].longitude,
-            icon: "res://run_pin",
-          },
-        ]);
+        if (!this.noMapMode) {
+          this.map.addMarkers([
+            {
+              lat: this.locations[0].latitude,
+              lng: this.locations[0].longitude,
+              icon: "res://run_pin",
+            },
+          ]);
+        }
         this.chronoStart = new Date();
         if (this.status == 0) {
           this.departTime = new Date();
@@ -229,13 +283,15 @@ export default {
       timerModule.clearInterval(this.timer);
       let temp = new Date() - this.chronoStart + this.pauseAdd;
       geolocation.clearWatch(this.locationWatcher);
-      this.map.addMarkers([
-        {
-          lat: this.locations[this.locations.length - 1].latitude,
-          lng: this.locations[this.locations.length - 1].longitude,
-          icon: "res://star_pin",
-        },
-      ]);
+      if (!this.noMapMode) {
+        this.map.addMarkers([
+          {
+            lat: this.locations[this.locations.length - 1].latitude,
+            lng: this.locations[this.locations.length - 1].longitude,
+            icon: "res://star_pin",
+          },
+        ]);
+      }
       this.$showModal(saveModal, {
         props: {
           defaultName:
@@ -267,8 +323,10 @@ export default {
         this.status = 0;
         this.pauseAdd = 0;
         this.departTime = new Date();
-        this.map.removePolylines();
-        this.map.removeMarkers();
+        if (!this.noMapMode) {
+          this.map.removePolylines();
+          this.map.removeMarkers();
+        }
         this.locations = [];
       });
     },
@@ -288,15 +346,17 @@ export default {
               ) {
                 that.lastSaved = loc;
                 that.locations.push(loc);
-                that.map.removePolylines();
-                that.map.addPolyline({
-                  color: "#3357C0", // Set the color of the line (default black)
-                  width: 3, // Set the width of the line (default 5)
-                  opacity: 1, //Transparency / alpha, ranging 0-1. Default fully opaque (1).
-                  points: that.locations.map((x) => {
-                    return { lat: x.latitude, lng: x.longitude };
-                  }),
-                });
+                if (!that.noMapMode) {
+                  that.map.removePolylines();
+                  that.map.addPolyline({
+                    color: "#3357C0", // Set the color of the line (default black)
+                    width: 3, // Set the width of the line (default 5)
+                    opacity: 1, //Transparency / alpha, ranging 0-1. Default fully opaque (1).
+                    points: that.locations.map((x) => {
+                      return { lat: x.latitude, lng: x.longitude };
+                    }),
+                  });
+                }
               }
             }
           },
@@ -394,5 +454,16 @@ export default {
   border-color: #1da1f2;
   margin: 10;
   padding-top: 5;
+}
+
+.chrono-display-big {
+  font-size: 50;
+  color: #14171a;
+  text-align: center;
+  border-width: 7px;
+  border-radius: 20px;
+  border-color: #1da1f2;
+  margin: 10;
+  padding-top: 150;
 }
 </style>
